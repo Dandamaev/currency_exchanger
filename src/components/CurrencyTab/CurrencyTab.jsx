@@ -1,21 +1,52 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Select, Table, Button, DatePicker, Space } from 'antd';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+    Select,
+    Table,
+    Button,
+    Spin,
+    Card,
+    Row,
+    Col,
+    Typography,
+} from 'antd';
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    Tooltip,
+    ResponsiveContainer,
+    Bar,
+    BarChart,
+} from 'recharts';
+import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
+
 import {
     fetchCurrencyList,
     fetchCurrencyRates,
     fetchCurrencyHistory,
     setBaseCurrency,
-    setPeriod
-} from '../../redux/actions.js';
+} from '../../redux/slices/currencySlice';
 
 const { Option } = Select;
-const { RangePicker } = DatePicker;
+const { Title } = Typography;
+
+// валюта, которую показываем всегда
+const SHORT_LIST = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'CHF', 'CAD', 'AUD', 'PLN'];
 
 const CurrencyTab = () => {
     const dispatch = useDispatch();
-    const { currencies, rates, baseCurrency, loading, history, period } = useSelector(state => state);
+    const {
+        currencies,
+        rates,
+        baseCurrency,
+        loading,
+        history,
+        period,
+    } = useSelector(state => state.currency);
+
+    const [showAll, setShowAll] = useState(false);
 
     useEffect(() => {
         dispatch(fetchCurrencyList());
@@ -24,86 +55,130 @@ const CurrencyTab = () => {
     useEffect(() => {
         if (baseCurrency) {
             dispatch(fetchCurrencyRates(baseCurrency));
+            dispatch(fetchCurrencyHistory({ base: baseCurrency, period }));
         }
-    }, [baseCurrency, dispatch]);
+    }, [baseCurrency, period, dispatch]);
 
-    const handleCurrencyChange = value => {
-        dispatch(setBaseCurrency(value));
-    };
+    const handleBaseChange = val => dispatch(setBaseCurrency(val));
+    const handleRefresh = () => dispatch(fetchCurrencyRates(baseCurrency));
+    const handlePeriod = val => dispatch(fetchCurrencyHistory({ base: baseCurrency, period: val }));
 
-    const handleRefresh = () => {
-        dispatch(fetchCurrencyRates(baseCurrency));
-    };
-
-    const handlePeriodChange = key => {
-        dispatch(setPeriod(key));
-        dispatch(fetchCurrencyHistory(baseCurrency, key));
-    };
+    const tableData = Object.entries(rates || {})
+        .filter(([pair]) => {
+            const cur = pair.replace(baseCurrency, '');
+            return showAll || SHORT_LIST.includes(cur);
+        })
+        .map(([pair, rate]) => ({
+            key: pair,
+            currency: pair.replace(baseCurrency, ''),
+            rate: Number(rate).toFixed(4),
+        }));
 
     const columns = [
-        {
-            title: 'Валюта',
-            dataIndex: 'currency',
-            key: 'currency',
-        },
-        {
-            title: 'Номинал',
-            dataIndex: 'rate',
-            key: 'rate',
-        },
+        { title: 'Валюта', dataIndex: 'currency', key: 'currency' },
+        { title: 'Курс', dataIndex: 'rate', key: 'rate' },
     ];
 
-    const dataSource = Object.entries(rates).map(([pair, rate]) => ({
-        key: pair,
-        currency: pair.replace(baseCurrency, ''),
-        rate: parseFloat(rate).toFixed(2),
-    }));
-
     return (
-        <div style={{ padding: 20 }}>
-            <Space direction="vertical" style={{ width: '100%' }}>
-                <Space>
+        <Spin spinning={loading}>
+            <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+                <Col>
                     <Select
-                        loading={loading}
                         value={baseCurrency}
-                        onChange={handleCurrencyChange}
+                        onChange={handleBaseChange}
                         style={{ width: 120 }}
+                        loading={loading}
+                        placeholder="Базовая валюта"
                     >
                         {currencies.map(c => (
                             <Option key={c} value={c}>{c}</Option>
                         ))}
                     </Select>
+                </Col>
+
+                <Col>
                     <Button onClick={handleRefresh}>Обновить</Button>
-                </Space>
+                </Col>
 
-                <Table dataSource={dataSource} columns={columns} pagination={false} rowKey="currency" />
+                <Col>
+                    <Select
+                        value={period}
+                        onChange={handlePeriod}
+                        style={{ width: 160 }}
+                    >
+                        <Option value="1">1 день</Option>
+                        <Option value="3">3 дня</Option>
+                        <Option value="7">Неделя</Option>
+                        <Option value="30">Месяц</Option>
+                    </Select>
+                </Col>
+            </Row>
 
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={dataSource}>
-                        <XAxis dataKey="currency" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="rate" fill="#1890ff" />
-                    </BarChart>
-                </ResponsiveContainer>
+            <Card title={`Курсы относительно ${baseCurrency || ''}`} style={{ marginBottom: 24 }}>
+                <Table
+                    dataSource={tableData}
+                    columns={columns}
+                    pagination={false}
+                    rowKey="currency"
+                    size="small"
+                />
 
-                <Select value={period} onChange={handlePeriodChange} style={{ width: 200 }}>
-                    <Option value="1">За день</Option>
-                    <Option value="3">За 3 дня</Option>
-                    <Option value="7">За неделю</Option>
-                    <Option value="30">За месяц</Option>
-                </Select>
+                {!showAll && (
+                    <Button
+                        type="dashed"
+                        icon={<PlusOutlined />}
+                        onClick={() => setShowAll(true)}
+                        style={{ marginTop: 16 }}
+                        block
+                    >
+                        Показать все валюты
+                    </Button>
+                )}
+                {showAll && (
+                    <Button
+                        type="dashed"
+                        icon={<MinusOutlined />}
+                        onClick={() => setShowAll(false)}
+                        style={{ marginTop: 16 }}
+                        block
+                    >
+                        Свернуть
+                    </Button>
+                )}
+            </Card>
 
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={history}>
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="rate" fill="#6b8f71" />
-                    </BarChart>
-                </ResponsiveContainer>
-            </Space>
-        </div>
+            <Card title="Курс валют" style={{ marginBottom: 24 }}>
+                <div style={{ width: '100%', height: 280 }}>
+                    <ResponsiveContainer>
+                        <BarChart data={tableData}>
+                            <XAxis dataKey="currency" />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="rate" fill="#1890ff" />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            </Card>
+
+            <Card title="История курса" style={{ marginBottom: 24 }}>
+                <div style={{ width: '100%', height: 280 }}>
+                    <ResponsiveContainer>
+                        <LineChart data={history}>
+                            <XAxis dataKey="date" />
+                            <YAxis />
+                            <Tooltip />
+                            <Line
+                                type="monotone"
+                                dataKey="rate"
+                                stroke="#1890ff"
+                                strokeWidth={2}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </Card>
+
+        </Spin>
     );
 };
 

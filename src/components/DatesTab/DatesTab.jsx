@@ -6,4 +6,4 @@ const DatesTab = () => {
     );
 };
 
-export default DatesTab
+export default DatesTab;
