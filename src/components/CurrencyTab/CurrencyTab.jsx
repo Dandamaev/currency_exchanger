@@ -80,7 +80,7 @@ const CurrencyTab = () => {
     ];
 
     return (
-        <Spin spinning={loading}>
+        <>
             <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
                 <Col>
                     <Select
@@ -103,6 +103,7 @@ const CurrencyTab = () => {
 
             <Card title={`Курсы относительно ${baseCurrency || ''}`} style={{ marginBottom: 24 }}>
                 <Table
+                    loading={loading}
                     dataSource={tableData}
                     columns={columns}
                     pagination={false}
@@ -154,7 +155,7 @@ const CurrencyTab = () => {
                         <Select
                             value={period}
                             onChange={handlePeriod}
-                            bordered={true}
+                            variant={'underlined'}
                             style={{ width: 100 }}
                         >
                             <Option value="1">1 день</Option>
@@ -183,7 +184,7 @@ const CurrencyTab = () => {
                 </div>
             </Card>
 
-        </Spin>
+        </>
     );
 };
 
