@@ -28,7 +28,19 @@ import {
     fetchCurrencyHistory,
     setBaseCurrency,
     setPeriod,
-} from '../../redux/slices/currencySlice';
+} from '../../redux/slices/currency/currencySlice';
+
+import {
+    selectCurrencies,
+    selectRates,
+    selectBaseCurrency,
+    selectLoading,
+    selectHistory,
+    selectPeriod,
+    selectVisibleAllCurrencies,
+    selectError,
+} from "../../redux/slices/currency/selectors";
+
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -38,16 +50,15 @@ const SHORT_LIST = ['USD', 'EUR', 'GBP', 'JPY', 'CNY'];
 
 const CurrencyTab = () => {
     const dispatch = useDispatch();
-    const {
-        currencies,
-        rates,
-        baseCurrency,
-        loading,
-        history,
-        period,
-    } = useSelector(state => state.currency);
 
+    const currencies = useSelector(selectCurrencies);
+    const rates = useSelector(selectRates);
+    const baseCurrency = useSelector(selectBaseCurrency);
+    const loading = useSelector(selectLoading);
+    const history = useSelector(selectHistory);
+    const period = useSelector(selectPeriod);
     const [showAll, setShowAll] = useState(false);
+
 
     useEffect(() => {
         dispatch(fetchCurrencyList());

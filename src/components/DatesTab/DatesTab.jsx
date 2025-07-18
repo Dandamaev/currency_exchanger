@@ -1,13 +1,17 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setDates, sortDataAsc, sortDataDesc } from '../../redux/slices/datesSlice';
+import { setDates, sortDataAsc, sortDataDesc } from '../../redux/slices/date/datesSlice';
+import { selectDatesArray, selectSortOrder, selectLoading } from '../../redux/slices/date/selectos';
 import { Button, Spin, List, Typography } from 'antd';
 
 const { Text } = Typography;
 
 const DatesTab = () => {
     const dispatch = useDispatch();
-    const { datesArray, sortOrder, loading } = useSelector(state => state.dates);
+
+    const datesArray = useSelector(selectDatesArray);
+    const sortOrder = useSelector(selectSortOrder);
+    const loading = useSelector(selectLoading);
 
     useEffect(() => {
         dispatch(setDates());
