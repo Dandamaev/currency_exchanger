@@ -27,6 +27,7 @@ import {
     fetchCurrencyRates,
     fetchCurrencyHistory,
     setBaseCurrency,
+    setPeriod,
 } from '../../redux/slices/currencySlice';
 
 const { Option } = Select;
@@ -61,7 +62,10 @@ const CurrencyTab = () => {
 
     const handleBaseChange = val => dispatch(setBaseCurrency(val));
     const handleRefresh = () => dispatch(fetchCurrencyRates(baseCurrency));
-    const handlePeriod = val => dispatch(fetchCurrencyHistory({ base: baseCurrency, period: val }));
+    const handlePeriod = val => {
+        dispatch(setPeriod(val));
+        dispatch(fetchCurrencyHistory({ base: baseCurrency, period: val }));
+    }
 
     const tableData = Object.entries(rates || {})
         .filter(([pair]) => {
