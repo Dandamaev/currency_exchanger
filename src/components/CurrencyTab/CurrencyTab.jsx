@@ -33,7 +33,7 @@ const { Option } = Select;
 const { Title } = Typography;
 
 // валюта, которую показываем всегда
-const SHORT_LIST = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'CHF', 'CAD', 'AUD', 'PLN'];
+const SHORT_LIST = ['USD', 'EUR', 'GBP', 'JPY', 'CNY'];
 
 const CurrencyTab = () => {
     const dispatch = useDispatch();
@@ -87,7 +87,6 @@ const CurrencyTab = () => {
                         value={baseCurrency}
                         onChange={handleBaseChange}
                         style={{ width: 120 }}
-                        loading={loading}
                         placeholder="Базовая валюта"
                     >
                         {currencies.map(c => (
@@ -100,18 +99,6 @@ const CurrencyTab = () => {
                     <Button onClick={handleRefresh}>Обновить</Button>
                 </Col>
 
-                <Col>
-                    <Select
-                        value={period}
-                        onChange={handlePeriod}
-                        style={{ width: 160 }}
-                    >
-                        <Option value="1">1 день</Option>
-                        <Option value="3">3 дня</Option>
-                        <Option value="7">Неделя</Option>
-                        <Option value="30">Месяц</Option>
-                    </Select>
-                </Col>
             </Row>
 
             <Card title={`Курсы относительно ${baseCurrency || ''}`} style={{ marginBottom: 24 }}>
@@ -160,7 +147,25 @@ const CurrencyTab = () => {
                 </div>
             </Card>
 
-            <Card title="История курса" style={{ marginBottom: 24 }}>
+            <Card
+                title={
+                    <>
+                        История курса за&nbsp;
+                        <Select
+                            value={period}
+                            onChange={handlePeriod}
+                            bordered={true}
+                            style={{ width: 100 }}
+                        >
+                            <Option value="1">1 день</Option>
+                            <Option value="3">3 дня</Option>
+                            <Option value="7">неделю</Option>
+                            <Option value="30">месяц</Option>
+                        </Select>
+                    </>
+                }
+                style={{ marginBottom: 24 }}
+            >
                 <div style={{ width: '100%', height: 280 }}>
                     <ResponsiveContainer>
                         <LineChart data={history}>
