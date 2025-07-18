@@ -19,7 +19,6 @@ export const fetchCurrencyRates = createAsyncThunk(
     }
 );
 
-
 export const fetchCurrencyHistory = createAsyncThunk(
     'currency/fetchCurrencyHistory',
     async ({ base, period }) => {
@@ -39,7 +38,6 @@ export const fetchCurrencyHistory = createAsyncThunk(
         return historyData;
     }
 );
-
 
 const currencySlice = createSlice({
     name: 'currency',
