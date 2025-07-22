@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import dayjs from 'dayjs';
 
 export const setDates = createAsyncThunk(
     'dates/setDates',
@@ -14,9 +13,46 @@ export const setDates = createAsyncThunk(
                 { date: '2025-04-26T04:00:00.000Z', display: '26.04.2025 07:00 (GMT+3)' },
             ];
 
+            // Добавим сегодняшнюю дату с GMT+5 и временем 12:00
+            const now = new Date();
+            const gmtPlus5OffsetMs = 5 * 60 * 60 * 1000;
+
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+
+            const localDate = new Date(`${year}-${month}-${day}T12:00:00.000+05:00`);
+            const isoDate = new Date(localDate.getTime() - gmtPlus5OffsetMs).toISOString();
+
+            const todayDate = {
+                date: isoDate,
+                display: `${day}.${month}.${year} 12:00 (GMT+5)`,
+            };
+
+            rawDates.push(todayDate);
+
+            // Случайные будущие даты (3 штуки), от 1 до 10 дней вперёд
+            for (let i = 0; i < 3; i++) {
+                const daysToAdd = Math.floor(Math.random() * 10) + 1;
+                const futureDate = new Date();
+                futureDate.setDate(futureDate.getDate() + daysToAdd);
+                futureDate.setHours(15, 0, 0, 0); // фиксированное время 15:00
+
+                const futureUtc = new Date(futureDate.getTime() - (3 * 60 * 60 * 1000)); // GMT+3 в UTC
+                const iso = futureUtc.toISOString();
+
+                const fYear = futureDate.getFullYear();
+                const fMonth = String(futureDate.getMonth() + 1).padStart(2, '0');
+                const fDay = String(futureDate.getDate()).padStart(2, '0');
+
+                const display = `${fDay}.${fMonth}.${fYear} 15:00 (GMT+3)`;
+
+                rawDates.push({ date: iso, display });
+            }
+
             const result = rawDates.map(d => ({
                 iso: d.date,
-                display: d.display
+                display: d.display,
             }));
 
             return result;
@@ -25,6 +61,7 @@ export const setDates = createAsyncThunk(
         }
     }
 );
+
 
 const datesSlice = createSlice({
     name: 'dates',
@@ -35,11 +72,11 @@ const datesSlice = createSlice({
     },
     reducers: {
         sortDataAsc: (state) => {
-            state.datesArray.sort((a, b) => dayjs(a.iso).valueOf() - dayjs(b.iso).valueOf());
+            state.datesArray.sort((a, b) => new Date(a.iso).getTime() - new Date(b.iso).getTime());
             state.sortOrder = 'asc';
         },
         sortDataDesc: (state) => {
-            state.datesArray.sort((a, b) => dayjs(b.iso).valueOf() - dayjs(a.iso).valueOf());
+            state.datesArray.sort((a, b) => new Date(b.iso).getTime() - new Date(a.iso).getTime());
             state.sortOrder = 'desc';
         },
     },
