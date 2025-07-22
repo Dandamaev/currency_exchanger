@@ -195,12 +195,16 @@ const CurrencyTab = () => {
                 </Button>
             </Card >
 
-            <Card title={<Title level={4}>Гистограмма курса</Title>} style={{ marginBottom: 24 }} bodyStyle={{ padding: 24 }}>
+            <Card title={<Title level={4}>Гистограмма курса</Title>} style={{ bodyStyle: { padding: 24 } }}>
                 <div style={{ width: '100%', height: 400 }}>
                     <Bar data={barData} options={chartOptions} />
                 </div>
             </Card>
 
+
+            { /* тут есть косяк: 
+            генерируемые даты не синхронизируются с реальными 
+            и следовательно данные из графика не соответствуют тем что пришли с API */}
             <Card
                 title={
                     <>
