@@ -21,7 +21,7 @@ export const fetchCurrencyRates = createAsyncThunk(
 
 export const fetchCurrencyHistory = createAsyncThunk(
     'currency/fetchCurrencyHistory',
-    async ({ base, period }) => {
+    async ({ base, target, period }) => {
         const days = Number(period);
         const today = new Date();
         const historyData = [];
@@ -29,11 +29,17 @@ export const fetchCurrencyHistory = createAsyncThunk(
         for (let i = days - 1; i >= 0; i--) {
             const date = new Date(today);
             date.setDate(today.getDate() - i);
+
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+
             historyData.push({
-                date: date.toISOString().split('T')[0],
-                rate: +(Math.random() * (120 - 60) + 60).toFixed(2),
+                date: `${dd}-${mm}-${yyyy}`,
+                rate: +(Math.random() * (1.5 - 0.5) + 0.5).toFixed(4),
             });
         }
+
 
         return historyData;
     }
@@ -45,21 +51,25 @@ const currencySlice = createSlice({
         currencies: [],
         rates: {},
         baseCurrency: 'RUB',
+        targetCurrency: 'USD',
         history: [],
         period: '7',
         error: null,
         loading: false,
-        visibleAllCurrencies: false
+        visibleAllCurrencies: false,
     },
     reducers: {
         setVisibleAllCurrencies: (state, action) => {
-            state.visibleAllCurrencies = action.payload
+            state.visibleAllCurrencies = action.payload;
         },
         setPeriod: (state, action) => {
-            state.period = action.payload
+            state.period = action.payload;
         },
         setBaseCurrency: (state, action) => {
             state.baseCurrency = action.payload;
+        },
+        setTargetCurrency: (state, action) => {
+            state.targetCurrency = action.payload;
         },
     },
     extraReducers: (builder) => {
@@ -97,8 +107,14 @@ const currencySlice = createSlice({
                 state.loading = false;
                 state.error = action.error.message;
             });
-    }
+    },
 });
 
-export const { setVisibleAllCurrencies, setPeriod, setBaseCurrency } = currencySlice.actions;
+export const {
+    setVisibleAllCurrencies,
+    setPeriod,
+    setBaseCurrency,
+    setTargetCurrency,
+} = currencySlice.actions;
+
 export default currencySlice.reducer;

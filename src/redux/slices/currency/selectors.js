@@ -21,3 +21,6 @@ export const selectVisibleAllCurrencies = state => state.currency.visibleAllCurr
 
 // Текст последней ошибки, если запрос к API завершился неудачно
 export const selectError = state => state.currency.error;
+
+// Целевая валюта, для графика с иторией 
+export const selectTargetCurrency = state => state.currency.targetCurrency;

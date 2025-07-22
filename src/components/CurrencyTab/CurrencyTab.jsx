@@ -4,30 +4,33 @@ import {
     Select,
     Table,
     Button,
-    Spin,
     Card,
     Row,
     Col,
     Typography,
 } from 'antd';
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    Tooltip,
-    ResponsiveContainer,
-    Bar,
-    BarChart,
-} from 'recharts';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    LineElement,
+    PointElement,
+    Tooltip,
+    Legend,
+    Title as ChartTitle,
+} from 'chart.js';
+import { Bar, Line } from 'react-chartjs-2';
 
 import {
     fetchCurrencyList,
     fetchCurrencyRates,
     fetchCurrencyHistory,
     setBaseCurrency,
+    setVisibleAllCurrencies,
     setPeriod,
+    setTargetCurrency,
 } from '../../redux/slices/currency/currencySlice';
 
 import {
@@ -38,15 +41,23 @@ import {
     selectHistory,
     selectPeriod,
     selectVisibleAllCurrencies,
-    selectError,
-} from "../../redux/slices/currency/selectors";
+    selectTargetCurrency,
+} from '../../redux/slices/currency/selectors';
 
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    LineElement,
+    PointElement,
+    Tooltip,
+    Legend,
+    ChartTitle
+);
 
 const { Option } = Select;
 const { Title } = Typography;
-
-// валюта, которую показываем всегда
-const SHORT_LIST = ['USD', 'EUR', 'GBP', 'JPY', 'CNY'];
+const SHORT_LIST = ['USD', 'EUR', 'GBP', 'CNY'];
 
 const CurrencyTab = () => {
     const dispatch = useDispatch();
@@ -57,9 +68,8 @@ const CurrencyTab = () => {
     const loading = useSelector(selectLoading);
     const history = useSelector(selectHistory);
     const period = useSelector(selectPeriod);
-    const [showAll, setShowAll] = useState(false);
-
-
+    const targetCurrency = useSelector(selectTargetCurrency);
+    const showAll = useSelector(selectVisibleAllCurrencies);
     useEffect(() => {
         dispatch(fetchCurrencyList());
     }, [dispatch]);
@@ -67,16 +77,17 @@ const CurrencyTab = () => {
     useEffect(() => {
         if (baseCurrency) {
             dispatch(fetchCurrencyRates(baseCurrency));
-            dispatch(fetchCurrencyHistory({ base: baseCurrency, period }));
+            dispatch(fetchCurrencyHistory({ base: baseCurrency, target: targetCurrency, period }));
         }
-    }, [baseCurrency, period, dispatch]);
+    }, [baseCurrency, targetCurrency, period, dispatch]);
 
     const handleBaseChange = val => dispatch(setBaseCurrency(val));
+    const handleTargetChange = val => dispatch(setTargetCurrency(val));
     const handleRefresh = () => dispatch(fetchCurrencyRates(baseCurrency));
     const handlePeriod = val => {
         dispatch(setPeriod(val));
-        dispatch(fetchCurrencyHistory({ base: baseCurrency, period: val }));
-    }
+        dispatch(fetchCurrencyHistory({ base: baseCurrency, target: targetCurrency, period: val }));
+    };
 
     const tableData = Object.entries(rates || {})
         .filter(([pair]) => {
@@ -94,85 +105,123 @@ const CurrencyTab = () => {
         { title: 'Курс', dataIndex: 'rate', key: 'rate' },
     ];
 
+    const barData = {
+        labels: tableData.map(d => d.currency),
+        datasets: [
+            {
+                label: `Курс к ${baseCurrency}`,
+                data: tableData.map(d => d.rate),
+                backgroundColor: 'rgba(24, 144, 255, 0.6)',
+                borderColor: '#1890ff',
+                borderWidth: 1,
+            },
+        ],
+    };
+
+    const lineData = {
+        labels: history.map(d => d.date),
+        datasets: [
+            {
+                label: `${baseCurrency}/${targetCurrency}`,
+                data: history.map(d => d.rate),
+                fill: false,
+                borderColor: '#1890ff',
+                backgroundColor: 'rgba(24, 144, 255, 0.4)',
+                tension: 0.3,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            },
+        ],
+    };
+
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: 20 },
+        plugins: {
+            tooltip: {
+                backgroundColor: '#1f1f1f',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#1890ff',
+                borderWidth: 1,
+            },
+            legend: { display: false },
+        },
+        scales: {
+            x: { ticks: { color: '#595959' }, grid: { color: '#f0f0f0' } },
+            y: { beginAtZero: true, ticks: { color: '#595959' }, grid: { color: '#f0f0f0' } },
+        },
+    };
+
     return (
         <>
-            <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+            <Row gutter={[16, 16]} style={{ marginLeft: 16, marginBottom: 10 }}>
                 <Col>
                     <Select
                         value={baseCurrency}
                         onChange={handleBaseChange}
                         style={{ width: 120 }}
-                        placeholder="Базовая валюта"
                     >
                         {currencies.map(c => (
                             <Option key={c} value={c}>{c}</Option>
                         ))}
                     </Select>
                 </Col>
-
                 <Col>
                     <Button onClick={handleRefresh}>Обновить</Button>
                 </Col>
-
             </Row>
 
-            <Card title={`Курсы относительно ${baseCurrency || ''}`} style={{ marginBottom: 24 }}>
+            <Card title={<Title level={4}>Курсы валют</Title>} style={{ body: { marginBottom: 24, padding: 24, background: '#f0f2f5' } }}>
                 <Table
                     loading={loading}
                     dataSource={tableData}
                     columns={columns}
                     pagination={false}
                     rowKey="currency"
-                    size="small"
+                    size="middle"
+                    bordered
+                    style={{ background: '#fff', borderRadius: 8 }}
                 />
+                <Button
+                    type="dashed"
+                    icon={showAll ? <MinusOutlined /> : <PlusOutlined />}
+                    onClick={() => dispatch(setVisibleAllCurrencies(!showAll))}
+                    style={{ marginTop: 16 }}
+                    block
+                >
+                    {showAll ? 'Свернуть' : 'Показать все валюты'}
+                </Button>
+            </Card >
 
-                {!showAll && (
-                    <Button
-                        type="dashed"
-                        icon={<PlusOutlined />}
-                        onClick={() => setShowAll(true)}
-                        style={{ marginTop: 16 }}
-                        block
-                    >
-                        Показать все валюты
-                    </Button>
-                )}
-                {showAll && (
-                    <Button
-                        type="dashed"
-                        icon={<MinusOutlined />}
-                        onClick={() => setShowAll(false)}
-                        style={{ marginTop: 16 }}
-                        block
-                    >
-                        Свернуть
-                    </Button>
-                )}
-            </Card>
-
-            <Card title="Курс валют" style={{ marginBottom: 24 }}>
-                <div style={{ width: '100%', height: 280 }}>
-                    <ResponsiveContainer>
-                        <BarChart data={tableData}>
-                            <XAxis dataKey="currency" />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar dataKey="rate" fill="#1890ff" />
-                        </BarChart>
-                    </ResponsiveContainer>
+            <Card title={<Title level={4}>Гистограмма курса</Title>} style={{ marginBottom: 24 }} bodyStyle={{ padding: 24 }}>
+                <div style={{ width: '100%', height: 400 }}>
+                    <Bar data={barData} options={chartOptions} />
                 </div>
             </Card>
 
             <Card
                 title={
                     <>
-                        История курса за&nbsp;
+                        История {baseCurrency} к{' '}
                         <Select
-                            value={period}
-                            onChange={handlePeriod}
-                            variant={'underlined'}
-                            style={{ width: 100 }}
+                            showSearch
+                            filterOption={(input, option) =>
+                                option?.children?.toLowerCase().includes(input.toLowerCase())
+                            }
+                            value={targetCurrency}
+                            onChange={handleTargetChange}
+                            style={{ width: 120, marginRight: 8 }}
                         >
+                            {currencies.map((currency) => (
+                                <Option key={currency} value={currency}>
+                                    {currency}
+                                </Option>
+                            ))}
+                        </Select>
+                        за{' '}
+                        <Select value={period} onChange={handlePeriod} style={{ width: 100 }}>
                             <Option value="1">1 день</Option>
                             <Option value="3">3 дня</Option>
                             <Option value="7">неделю</Option>
@@ -180,25 +229,14 @@ const CurrencyTab = () => {
                         </Select>
                     </>
                 }
-                style={{ marginBottom: 24 }}
+                style={{
+                    body: { padding: 24 }
+                }}
             >
-                <div style={{ width: '100%', height: 280 }}>
-                    <ResponsiveContainer>
-                        <LineChart data={history}>
-                            <XAxis dataKey="date" />
-                            <YAxis />
-                            <Tooltip />
-                            <Line
-                                type="monotone"
-                                dataKey="rate"
-                                stroke="#1890ff"
-                                strokeWidth={2}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
+                <div style={{ width: '100%', height: 400 }}>
+                    <Line data={lineData} options={chartOptions} />
                 </div>
-            </Card>
-
+            </Card >
         </>
     );
 };
