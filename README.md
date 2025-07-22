@@ -26,7 +26,7 @@
   <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB" alt="React"/>
   <img src="https://img.shields.io/badge/Redux-764ABC?logo=redux&logoColor=white" alt="Redux"/>
   <img src="https://img.shields.io/badge/Ant%20Design-0170FE?logo=antdesign&logoColor=white" alt="Ant Design"/>
-  <img src="https://img.shields.io/badge/Recharts-2CAFFF?logo=recharts&logoColor=white" alt="Recharts"/>
+  <img src="https://img.shields.io/badge/Chart.js-FF6384?logo=recharts&logoColor=white" alt="Chart.js"/>
   <img src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" alt="Vite"/>
 </p>
 
