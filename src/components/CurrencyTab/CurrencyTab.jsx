@@ -191,12 +191,14 @@ const CurrencyTab = () => {
                         <Button onClick={handleClean} type='text' shape='circle' icon={<DeleteOutlined />}></Button>
                     </Col>
                 </Row>
-            }>
+            } bodyStyle={{
+                backgroundColor: '#f5f7fa',          // фон тела карточки
+            }}>
                 <Row gutter={16} align="top">
                     <Col span={12}>
                         <Card
                             title={<Title level={4}>Курсы валют</Title>}
-                            style={{ body: { background: '#f0f2f5' } }}
+
                         >
                             <Table
                                 loading={loading}
