@@ -194,11 +194,11 @@ const CurrencyTab = () => {
             } bodyStyle={{
                 backgroundColor: '#f5f7fa',          // фон тела карточки
             }}>
-                <Row gutter={16} align="top">
+                <Row gutter={16} align="stretch">
                     <Col span={12}>
                         <Card
                             title={<Title level={4}>Курсы валют</Title>}
-
+                            style={{ height: '100%' }}
                         >
                             <Table
                                 loading={loading}
