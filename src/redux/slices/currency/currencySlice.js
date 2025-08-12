@@ -4,8 +4,10 @@ import axios from 'axios';
 export const fetchCurrencyList = createAsyncThunk(
     'currency/fetchCurrencyList',
     async () => {
-        const { data } = await axios.get('https://open.er-api.com/v6/latest/USD');
-        return Object.keys(data.rates);
+        const { data } = await axios.get(
+            'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies.json'
+        );
+        return Object.keys(data).map(c => c.toUpperCase());
     }
 );
 
@@ -13,11 +15,19 @@ export const fetchCurrencyRates = createAsyncThunk(
     'currency/fetchCurrencyRates',
     async (baseCurrency) => {
         const { data } = await axios.get(
-            `https://open.er-api.com/v6/latest/${baseCurrency}`
+            `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${baseCurrency.toLowerCase()}.json`
         );
-        return data.rates;
+
+        const ratesRaw = data?.[baseCurrency.toLowerCase()] || {};
+
+        const rates = Object.fromEntries(
+            Object.entries(ratesRaw).map(([k, v]) => [k.toUpperCase(), Number(v)])
+        );
+
+        return rates;
     }
 );
+
 
 export const fetchCurrencyHistory = createAsyncThunk(
     'currency/fetchCurrencyHistory',
@@ -30,20 +40,27 @@ export const fetchCurrencyHistory = createAsyncThunk(
             const date = new Date(today);
             date.setDate(today.getDate() - i);
 
-            const dd = String(date.getDate()).padStart(2, '0');
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
             const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const apiDate = `${yyyy}-${mm}-${dd}`;       // для запроса
+            const labelDate = `${dd}.${mm}.${yyyy}`;    // для отображения
+
+            const { data } = await axios.get(
+                `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${apiDate}/v1/currencies/${base.toLowerCase()}.json`
+            );
 
             historyData.push({
-                date: `${dd}-${mm}-${yyyy}`,
-                rate: +(Math.random() * (1.5 - 0.5) + 0.5).toFixed(4),
+                date: labelDate,
+                rate: Number(data[base.toLowerCase()][target.toLowerCase()])
             });
-        }
 
+        }
 
         return historyData;
     }
 );
+
 
 const currencySlice = createSlice({
     name: 'currency',

@@ -70,16 +70,20 @@ const CurrencyTab = () => {
     const period = useSelector(selectPeriod);
     const targetCurrency = useSelector(selectTargetCurrency);
     const showAll = useSelector(selectVisibleAllCurrencies);
-    useEffect(() => {
-        dispatch(fetchCurrencyList());
-    }, [dispatch]);
 
     useEffect(() => {
-        if (baseCurrency) {
+        if (currencies.length === 0) {
+            dispatch(fetchCurrencyList());
+        }
+    }, [dispatch, currencies.length]);
+
+    useEffect(() => {
+        if (currencies.length > 0 && baseCurrency) {
             dispatch(fetchCurrencyRates(baseCurrency));
             dispatch(fetchCurrencyHistory({ base: baseCurrency, target: targetCurrency, period }));
         }
-    }, [baseCurrency, targetCurrency, period, dispatch]);
+    }, [baseCurrency, targetCurrency, period, currencies.length, dispatch]);
+
 
     const handleBaseChange = val => dispatch(setBaseCurrency(val));
     const handleTargetChange = val => dispatch(setTargetCurrency(val));
@@ -201,10 +205,6 @@ const CurrencyTab = () => {
                 </div>
             </Card>
 
-
-            { /* тут есть косяк: 
-            генерируемые даты не синхронизируются с реальными 
-            и следовательно данные из графика не соответствуют тем что пришли с API */}
             <Card
                 title={
                     <>
