@@ -8,6 +8,7 @@ import {
     Row,
     Col,
     Typography,
+    Space,
 } from 'antd';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import {
@@ -141,7 +142,7 @@ const CurrencyTab = () => {
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: 20 },
+        Space: { padding: 20 },
         plugins: {
             tooltip: {
                 backgroundColor: '#1f1f1f',
@@ -177,33 +178,46 @@ const CurrencyTab = () => {
                 </Col>
             </Row>
 
-            <Card title={<Title level={4}>Курсы валют</Title>} style={{ body: { marginBottom: 24, padding: 24, background: '#f0f2f5' } }}>
-                <Table
-                    loading={loading}
-                    dataSource={tableData}
-                    columns={columns}
-                    pagination={false}
-                    rowKey="currency"
-                    size="middle"
-                    bordered
-                    style={{ background: '#fff', borderRadius: 8 }}
-                />
-                <Button
-                    type="dashed"
-                    icon={showAll ? <MinusOutlined /> : <PlusOutlined />}
-                    onClick={() => dispatch(setVisibleAllCurrencies(!showAll))}
-                    style={{ marginTop: 16 }}
-                    block
-                >
-                    {showAll ? 'Свернуть' : 'Показать все валюты'}
-                </Button>
-            </Card >
+            <Row gutter={16} align="top">
+                <Col span={12}>
+                    <Card
+                        title={<Title level={4}>Курсы валют</Title>}
+                        style={{ body: { background: '#f0f2f5' } }}
+                    >
+                        <Table
+                            loading={loading}
+                            dataSource={tableData}
+                            columns={columns}
+                            pagination={false}
+                            rowKey="currency"
+                            size="middle"
+                            bordered
+                            style={{ background: '#fff', borderRadius: 8 }}
+                        />
+                        <Button
+                            type="dashed"
+                            icon={showAll ? <MinusOutlined /> : <PlusOutlined />}
+                            onClick={() => dispatch(setVisibleAllCurrencies(!showAll))}
+                            style={{ marginTop: 16 }}
+                            block
+                        >
+                            {showAll ? 'Свернуть' : 'Показать все валюты'}
+                        </Button>
+                    </Card>
+                </Col>
 
-            <Card title={<Title level={4}>Гистограмма курса</Title>} style={{ bodyStyle: { padding: 24 } }}>
-                <div style={{ width: '100%', height: 400 }}>
-                    <Bar data={barData} options={chartOptions} />
-                </div>
-            </Card>
+                <Col span={12}>
+                    <Card
+                        title={<Title level={4}>Гистограмма курса</Title>}
+                        style={{ height: '100%' }}
+                    >
+                        <div style={{ width: '100%', height: 400 }}>
+                            <Bar data={barData} options={chartOptions} />
+                        </div>
+                    </Card>
+                </Col>
+            </Row>
+
 
             <Card
                 title={
