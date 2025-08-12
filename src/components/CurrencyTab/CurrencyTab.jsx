@@ -209,6 +209,7 @@ const CurrencyTab = () => {
                                 size="middle"
                                 bordered
                                 style={{ background: '#fff', borderRadius: 8 }}
+                                scroll={{ y: 350 }}
                             />
                             <Button
                                 type="dashed"
