@@ -1,6 +1,18 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+const initialState = {
+    currencies: [],
+    rates: {},
+    baseCurrency: 'RUB',
+    targetCurrency: 'USD',
+    history: [],
+    period: '7',
+    error: null,
+    loading: false,
+    visibleAllCurrencies: false,
+};
+
 export const fetchCurrencyList = createAsyncThunk(
     'currency/fetchCurrencyList',
     async () => {
@@ -64,17 +76,7 @@ export const fetchCurrencyHistory = createAsyncThunk(
 
 const currencySlice = createSlice({
     name: 'currency',
-    initialState: {
-        currencies: [],
-        rates: {},
-        baseCurrency: 'RUB',
-        targetCurrency: 'USD',
-        history: [],
-        period: '7',
-        error: null,
-        loading: false,
-        visibleAllCurrencies: false,
-    },
+    initialState,
     reducers: {
         setVisibleAllCurrencies: (state, action) => {
             state.visibleAllCurrencies = action.payload;
@@ -88,6 +90,7 @@ const currencySlice = createSlice({
         setTargetCurrency: (state, action) => {
             state.targetCurrency = action.payload;
         },
+        resetCurrencyState: () => initialState,
     },
     extraReducers: (builder) => {
         builder
@@ -132,6 +135,7 @@ export const {
     setPeriod,
     setBaseCurrency,
     setTargetCurrency,
+    resetCurrencyState,
 } = currencySlice.actions;
 
 export default currencySlice.reducer;

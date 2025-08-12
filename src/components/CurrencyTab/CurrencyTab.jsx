@@ -8,9 +8,13 @@ import {
     Row,
     Col,
     Typography,
-    Space,
 } from 'antd';
-import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
+import {
+    PlusOutlined,
+    MinusOutlined,
+    ReloadOutlined,
+    DeleteOutlined,
+} from '@ant-design/icons';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -32,6 +36,7 @@ import {
     setVisibleAllCurrencies,
     setPeriod,
     setTargetCurrency,
+    resetCurrencyState,
 } from '../../redux/slices/currency/currencySlice';
 
 import {
@@ -93,6 +98,11 @@ const CurrencyTab = () => {
         dispatch(setPeriod(val));
         dispatch(fetchCurrencyHistory({ base: baseCurrency, target: targetCurrency, period: val }));
     };
+    const handleClean = () => {
+        dispatch(resetCurrencyState());
+        dispatch(fetchCurrencyList());
+    };
+
 
     const tableData = Object.entries(rates || {})
         .filter(([pair]) => {
@@ -161,63 +171,67 @@ const CurrencyTab = () => {
 
     return (
         <>
-            <Row gutter={[16, 16]} style={{ marginLeft: 16, marginBottom: 10 }}>
-                <Col>
-                    <Select
-                        value={baseCurrency}
-                        onChange={handleBaseChange}
-                        style={{ width: 120 }}
-                    >
-                        {currencies.map(c => (
-                            <Option key={c} value={c}>{c}</Option>
-                        ))}
-                    </Select>
-                </Col>
-                <Col>
-                    <Button onClick={handleRefresh}>Обновить</Button>
-                </Col>
-            </Row>
-
-            <Row gutter={16} align="top">
-                <Col span={12}>
-                    <Card
-                        title={<Title level={4}>Курсы валют</Title>}
-                        style={{ body: { background: '#f0f2f5' } }}
-                    >
-                        <Table
-                            loading={loading}
-                            dataSource={tableData}
-                            columns={columns}
-                            pagination={false}
-                            rowKey="currency"
-                            size="middle"
-                            bordered
-                            style={{ background: '#fff', borderRadius: 8 }}
-                        />
-                        <Button
-                            type="dashed"
-                            icon={showAll ? <MinusOutlined /> : <PlusOutlined />}
-                            onClick={() => dispatch(setVisibleAllCurrencies(!showAll))}
-                            style={{ marginTop: 16 }}
-                            block
+            <Card title={
+                <Row gutter={[16, 16]} style={{ marginLeft: 16, marginBottom: 10 }}>
+                    <Col>
+                        <Select
+                            value={baseCurrency}
+                            onChange={handleBaseChange}
+                            style={{ width: 120 }}
                         >
-                            {showAll ? 'Свернуть' : 'Показать все валюты'}
-                        </Button>
-                    </Card>
-                </Col>
+                            {currencies.map(c => (
+                                <Option key={c} value={c}>{c}</Option>
+                            ))}
+                        </Select>
+                    </Col>
+                    <Col>
+                        <Button onClick={handleRefresh} type="text" shape="circle" icon={<ReloadOutlined />}></Button>
+                    </Col>
+                    <Col>
+                        <Button onClick={handleClean} type='text' shape='circle' icon={<DeleteOutlined />}></Button>
+                    </Col>
+                </Row>
+            }>
+                <Row gutter={16} align="top">
+                    <Col span={12}>
+                        <Card
+                            title={<Title level={4}>Курсы валют</Title>}
+                            style={{ body: { background: '#f0f2f5' } }}
+                        >
+                            <Table
+                                loading={loading}
+                                dataSource={tableData}
+                                columns={columns}
+                                pagination={false}
+                                rowKey="currency"
+                                size="middle"
+                                bordered
+                                style={{ background: '#fff', borderRadius: 8 }}
+                            />
+                            <Button
+                                type="dashed"
+                                icon={showAll ? <MinusOutlined /> : <PlusOutlined />}
+                                onClick={() => dispatch(setVisibleAllCurrencies(!showAll))}
+                                style={{ marginTop: 16 }}
+                                block
+                            >
+                                {showAll ? 'Свернуть' : 'Показать все валюты'}
+                            </Button>
+                        </Card>
+                    </Col>
 
-                <Col span={12}>
-                    <Card
-                        title={<Title level={4}>Гистограмма курса</Title>}
-                        style={{ height: '100%' }}
-                    >
-                        <div style={{ width: '100%', height: 400 }}>
-                            <Bar data={barData} options={chartOptions} />
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
-
+                    <Col span={12}>
+                        <Card
+                            title={<Title level={4}>Гистограмма курса</Title>}
+                            style={{ height: '100%' }}
+                        >
+                            <div style={{ width: '100%', height: 400 }}>
+                                <Bar data={barData} options={chartOptions} />
+                            </div>
+                        </Card>
+                    </Col>
+                </Row>
+            </Card >
 
             <Card
                 title={
